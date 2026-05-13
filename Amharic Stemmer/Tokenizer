@@ -1,0 +1,91 @@
+package main
+
+import "fmt"
+
+type Sellable interface {
+	RestockFull() float64
+	Sell(quantity int) float64
+}
+
+type BookShelf struct {
+	Name           string
+	Capacity       int
+	CurrentBooks   int
+	WholesalePrice float64
+	RetailPrice    float64
+}
+
+type CoffeeStand struct {
+	Name         string
+	BeanCapacity float64
+	CurrentBeans float64
+	BeansPerCup  float64
+	CostPerKg    float64
+	PricePerCup  float64
+}
+
+func (b *BookShelf) RestockFull() float64 {
+	needed := b.Capacity - b.CurrentBooks
+	cost := float64(needed) * b.WholesalePrice
+	b.CurrentBooks = b.Capacity
+	return cost
+}
+
+func (b *BookShelf) Sell(quantity int) float64 {
+	if b.CurrentBooks < quantity {
+		return 0
+	}
+	b.CurrentBooks -= quantity
+	return float64(quantity) * b.RetailPrice
+}
+
+func (c *CoffeeStand) RestockFull() float64 {
+	needed := c.BeanCapacity - c.CurrentBeans
+	cost := needed * c.CostPerKg
+	c.CurrentBeans = c.BeanCapacity
+	return cost
+}
+
+func (c *CoffeeStand) Sell(quantity int) float64 {
+	beansNeeded := float64(quantity) * c.BeansPerCup
+	if c.CurrentBeans < beansNeeded {
+		return 0
+	}
+	c.CurrentBeans -= beansNeeded
+	return float64(quantity) * c.PricePerCup
+}
+
+func sellAllItems(items []Sellable, quantity int) float64 {
+	totalRevenue := 0.0
+
+	for _, item := range items {
+		totalRevenue += item.Sell(quantity)
+	}
+
+	return totalRevenue
+}
+
+func main() {
+	books := BookShelf{
+		Name:           "Programming Books",
+		Capacity:       40,
+		CurrentBooks:   25,
+		WholesalePrice: 12,
+		RetailPrice:    25,
+	}
+
+	coffee := CoffeeStand{
+		Name:         "Coffee Bar",
+		BeanCapacity: 10,
+		CurrentBeans: 4,
+		BeansPerCup:  0.08,
+		CostPerKg:    10,
+		PricePerCup:  3.5,
+	}
+
+	items := []Sellable{&books, &coffee}
+	quantity := 20
+	totalRevenue := sellAllItems(items, quantity)
+	// Output should be: Total revenue for selling 20 units from each item: $570.00
+	fmt.Printf("Total revenue for selling %d units from each item: $%.2f\n", quantity, totalRevenue)
+}
