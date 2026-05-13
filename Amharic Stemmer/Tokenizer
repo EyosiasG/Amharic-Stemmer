@@ -1,3 +1,85 @@
+
+package main
+
+import "fmt"
+
+// Vehicle interface as defined in Screenshot_20260513_161239_WhatsApp.jpg
+type Vehicle interface {
+	LoadFull() float64
+	Drive(distance float64) float64
+}
+
+// FossilCar struct as defined in Screenshot_20260513_161236_WhatsApp.jpg
+type FossilCar struct {
+	Name               string
+	TankCapacity       int
+	CurrentFuel        float64
+	FuelConsumption100km float64
+	PricePerLiter      float64
+}
+
+func (f *FossilCar) LoadFull() float64 {
+	needed := float64(f.TankCapacity) - f.CurrentFuel
+	cost := needed * f.PricePerLiter
+	f.CurrentFuel = float64(f.TankCapacity)
+	return cost
+}
+
+func (f *FossilCar) Drive(distance float64) float64 {
+	fuelNeeded := (distance / 100) * f.FuelConsumption100km
+	if f.CurrentFuel >= fuelNeeded {
+		f.CurrentFuel -= fuelNeeded
+		return fuelNeeded * f.PricePerLiter
+	}
+	return 0
+}
+
+// ElectricCar struct as defined in Screenshot_20260513_161239_WhatsApp.jpg
+type ElectricCar struct {
+	Name            string
+	BatteryCapacity int
+	CurrentLevel    float64
+	FullRange       int
+	PricePerKWh     float64
+}
+
+func (e *ElectricCar) LoadFull() float64 {
+	needed := float64(e.BatteryCapacity) - e.CurrentLevel
+	cost := needed * e.PricePerKWh
+	e.CurrentLevel = float64(e.BatteryCapacity)
+	return cost
+}
+
+func (e *ElectricCar) Drive(distance float64) float64 {
+	// Energy consumption per km = BatteryCapacity / FullRange
+	energyNeeded := distance * (float64(e.BatteryCapacity) / float64(e.FullRange))
+	if e.CurrentLevel >= energyNeeded {
+		e.CurrentLevel -= energyNeeded
+		return energyNeeded * e.PricePerKWh
+	}
+	return 0
+}
+
+// driveAllVehicles function as defined in Screenshot_20260513_161239_WhatsApp.jpg
+func driveAllVehicles(vehicles []Vehicle, distance float64) float64 {
+	totalCost := 0.0
+	for _, v := range vehicles {
+		totalCost += v.Drive(distance)
+	}
+	return totalCost
+}
+
+func main() {
+	// Example usage
+	myFossil := &FossilCar{"Old Timer", 50, 10.0, 7.5, 1.50}
+	myEV := &ElectricCar{"Future Ride", 75, 20.0, 400, 0.30}
+
+	fleet := []Vehicle{myFossil, myEV}
+	
+	fmt.Printf("Initial load cost: %.2f\n", myFossil.LoadFull() + myEV.LoadFull())
+	fmt.Printf("Total trip cost: %.2f\n", driveAllVehicles(fleet, 100.0))
+}
+
 package main
 
 import "fmt"
