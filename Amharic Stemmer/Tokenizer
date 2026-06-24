@@ -77,3 +77,77 @@ func main() {
 	}
 	fmt.Printf("Total correct answers: %d\n", total)
 }
+
+
+package main
+
+import (
+	"fmt"
+	"strings"
+	"sort"
+	"sync"
+)
+
+type Job struct {
+	ID   int
+	Text string
+}
+
+type Result struct {
+	JobID     int
+	WordCount int
+}
+
+func CountWords(text string) int {
+	return len(strings.Fields(text))
+}
+
+func ProcessJobs(jobs []Job) []Result {
+	results := make([]Result, len(jobs))
+	var wg sync.WaitGroup
+
+	for i := 0; i < len(jobs); i++ {
+		wg.Add(1)
+
+		go func(idx int, j Job) {
+			defer wg.Done()
+			
+			results[idx] = Result{
+				JobID:     j.ID,
+				WordCount: CountWords(j.Text),
+			}
+		}(i, jobs[i])
+	}
+
+	wg.Wait()
+
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].JobID < results[j].JobID
+	})
+
+	return results
+}
+
+func TotalWords(results []Result) int {
+	total := 0
+	for _, res := range results {
+		total += res.WordCount
+	}
+	return total
+}
+
+func main() {
+	jobs := []Job{
+		{ID: 3, Text: "Go concurrency is fun"},
+		{ID: 1, Text: "Hello world Go"},
+		{ID: 2, Text: "Slices channels and goroutines"},
+	}
+
+	results := ProcessJobs(jobs)
+	total := TotalWords(results)
+
+	for _, result := range results {
+		fmt.Printf("Job %d: %d words\n", result.JobID, result.WordCount)
+	}
+	fmt.Printf("Total words: %d\n", total)
+}
